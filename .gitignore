@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+data/*
+
+okteto*
+.stignore
+__MACOSX*/
+.metaflow/*
+metaflow_card_cache/*
+
+user_recommendation/test_user_recommendation/integration_test/*
