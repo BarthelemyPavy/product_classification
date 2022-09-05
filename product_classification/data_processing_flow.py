@@ -1,10 +1,12 @@
 """File where data processing Flow is defined"""
+import logging
 from pathlib import Path
 from typing import Union
 from metaflow import FlowSpec, step, Parameter
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from product_classification import logger
 
 class DataProcessingFlow(FlowSpec):
     """Flow used to make some data processing and cleaning\n
@@ -30,7 +32,7 @@ class DataProcessingFlow(FlowSpec):
         "Load files and create global dataset"
         from product_classification.data_processing.create_dataset import get_merged_dataframe
 
-        self.dataset = get_merged_dataframe(file_path=input_file_path)
+        self.dataset = get_merged_dataframe(file_path=self.input_file_path)
 
         self.next(self.clean_dataset)
         
@@ -39,8 +41,9 @@ class DataProcessingFlow(FlowSpec):
         """Clean dataset"""
         from product_classification.data_processing.create_dataset import CleanDataset
         
-        cleaner = CleanDataset(price_transformation="median", categories_threshold="0.1")
-        self.clean_dataset = cleaner.run(dataset=self.dataset)
+        cleaner = CleanDataset(price_transformation="median", categories_threshold=0.1)
+        self.cleaned_dataset = cleaner.run(dataset=self.dataset)
+        
         self.next(self.end)
     
     @step
