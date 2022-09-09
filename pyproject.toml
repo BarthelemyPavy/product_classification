@@ -30,6 +30,9 @@ fire = "^0.4.0"
 pandasql = "^0.7.3"
 scipy = "^1.9.1"
 scikit-learn = "^1.1.2"
+scikit-multilearn = "^0.2.0"
+arff = "^0.9"
+lightgbm = "^3.3.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
