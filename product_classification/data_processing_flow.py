@@ -8,6 +8,7 @@ import numpy.typing as npt
 import pandas as pd
 from product_classification import logger
 
+
 class DataProcessingFlow(FlowSpec):
     """Flow used to make some data processing and cleaning\n
     In this flow we will:\n
@@ -35,21 +36,21 @@ class DataProcessingFlow(FlowSpec):
         self.dataset = get_merged_dataframe(file_path=self.input_file_path)
 
         self.next(self.clean_dataset)
-        
+
     @step
     def clean_dataset(self) -> None:
         """Clean dataset"""
-        from product_classification.data_processing.create_dataset import CleanDataset
-        
-        cleaner = CleanDataset(price_transformation="median", categories_threshold=0.1)
-        self.cleaned_dataset = cleaner.run(dataset=self.dataset)
-        
+        from product_classification.data_processing.create_dataset import clean_dataset
+
+        self.cleaned_dataset = clean_dataset(dataset=self.dataset)
+
         self.next(self.end)
-    
+
     @step
     def end(self) -> None:
         """"""
         pass
-    
+
+
 if __name__ == "__main__":
     DataProcessingFlow()
