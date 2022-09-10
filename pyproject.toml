@@ -17,7 +17,6 @@ fmt = "scripts:fmt"
 lint = "scripts:lint"
 test = "scripts:test"
 
-download_data = "scripts:download_data"
 nltk_resources = "scripts:download_nltk_resources"
 
 [tool.poetry.dependencies]

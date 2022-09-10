@@ -1,4 +1,3 @@
-
 """Module for product classification"""
 from product_classification.utils import init_logger
 
