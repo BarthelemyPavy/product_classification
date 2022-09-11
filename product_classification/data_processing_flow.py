@@ -1,11 +1,6 @@
 """File where data processing Flow is defined"""
-import logging
 from pathlib import Path
-from typing import Union
 from metaflow import FlowSpec, step, Parameter
-import numpy as np
-import numpy.typing as npt
-import pandas as pd
 from product_classification import logger
 
 
@@ -14,7 +9,14 @@ class DataProcessingFlow(FlowSpec):
     In this flow we will:\n
         - Load inputs data.
         - Clean global dataset
+        - Split dataset
     """
+
+    config_path = Parameter(
+        "config_path",
+        help="Config file path for training params",
+        default=str(Path(__file__).parent / "conf" / "config.yml"),
+    )
 
     random_state = Parameter(
         "random_state",
@@ -30,6 +32,17 @@ class DataProcessingFlow(FlowSpec):
 
     @step
     def start(self) -> None:
+        """Load training config from yaml file.
+        This file contains parameters for train test split generation"""
+        import yaml
+
+        with open(self.config_path, "r") as stream:
+            self.config = yaml.load(stream, Loader=None)
+        logger.info(f"Config parsed: {self.config}")
+        self.next(self.get_dataframe)
+
+    @step
+    def get_dataframe(self) -> None:
         "Load files and create global dataset"
         from product_classification.data_processing.create_dataset import get_merged_dataframe
 
@@ -44,11 +57,31 @@ class DataProcessingFlow(FlowSpec):
 
         self.cleaned_dataset = clean_dataset(dataset=self.dataset)
 
+        self.next(self.split_dataset)
+
+    @step
+    def split_dataset(self) -> None:
+        """Split dataset in train test val"""
+        from product_classification.data_processing.train_test_val_split import SimpleSplit
+
+        logger.info(f"Split dataset in train test val")
+        simple_split = SimpleSplit(
+            min_categories_threshold=self.config.get("min_category_count"),
+            max_categories_threshold=self.config.get("max_category_count"),
+        )
+        self.datasets = simple_split.execute(
+            dataset=self.cleaned_dataset, split_size=self.config.get("split_size"), random_state=self.random_state
+        )
+        for fname, dataframe in self.datasets:
+            setattr(self.datasets, fname, dataframe.drop(columns=["product_description"]))
+        self.multilabel_binarizer = simple_split.multilabel_binarizer
         self.next(self.end)
 
     @step
     def end(self) -> None:
         """"""
+        self.multilabel_binarizer
+        self.dataset
         pass
 
 
