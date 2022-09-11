@@ -64,8 +64,8 @@ def log_attribute_per_dataset(df_data: pd.DataFrame, attribute: str, logger: log
     for name, nb_samples in pd.DataFrame(temp.iloc[:, 0]).itertuples():
         nb_attr[str(name)] = nb_samples
     logger.info(f"{desc}: {nb_attr}")
-    
-    
+
+
 def log_channels_per_cat(df_data: pd.DataFrame, attribute: str, logger: logging.Logger, desc: str) -> None:
     """Log metric with number of samples per category
 
