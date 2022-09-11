@@ -17,7 +17,7 @@ fmt = "scripts:fmt"
 lint = "scripts:lint"
 test = "scripts:test"
 
-nltk_resources = "scripts:download_nltk_resources"
+text_resources = "scripts:download_text_resources"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
@@ -32,6 +32,12 @@ scikit-learn = "^1.1.2"
 scikit-multilearn = "^0.2.0"
 arff = "^0.9"
 lightgbm = "^3.3.2"
+torch = "1.7.1"
+torchtext = "0.8.1"
+tqdm = "^4.64.1"
+spacy = "^2.2.4"
+torchmetrics = "^0.9.3"
+PyYAML = "5.4.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"

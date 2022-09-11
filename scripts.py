@@ -72,12 +72,18 @@ def lint() -> None:
     sys.exit(status)
 
 
-def download_nltk_resources() -> None:
+def download_text_resources() -> None:
     """Download resources from nltk"""
     import nltk
+    import sys
+    import subprocess
 
     nltk.download("punkt")
     nltk.download("stopwords")
     nltk.download("wordnet")
     nltk.download("averaged_perceptron_tagger")
     nltk.download("omw-1.4")
+    command= ["python", "-m", "spacy", "download", "en"]
+    result = subprocess.run(command, capture_output=True, check=False)
+    sys.exit(result.returncode)
+
