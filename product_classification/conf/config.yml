@@ -1,0 +1,26 @@
+# Parameters used for training
+
+_learning_rates: &lr
+  init_phase: !!float 5e-4
+  finetuning_phase: !!float 1e-4
+
+_epochs: &epochs
+  init_phase: 2
+  finetuning_phase: 3
+
+categorical_columns: ["brand_name", "merchant_name"]
+textual_column: "product_name"
+min_category_count: 75
+max_category_count: 10_000
+split_size: !!float 0.5
+batch_size: 128
+vocab_size: 100000
+embedding_name: "fasttext.simple.300d"
+device: "cpu"
+hyperparameters_cnn_classifier:
+  nb_filters: 100
+  kernels: [3, 4, 5]
+  dropout: !!float 0.5
+  lrates: *lr
+  epochs: *epochs
+vector_cache: ".vector_cache"
