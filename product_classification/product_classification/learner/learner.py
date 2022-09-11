@@ -12,6 +12,7 @@ import numpy as np
 import numpy.typing as npt
 
 from product_classification.learner.metrics import IMetric
+from product_classification import logger
 
 PathOrStr = Union[Path, str]
 
@@ -57,7 +58,7 @@ class Learner:
         optimizer: Optional[optim.Optimizer],
         loss_func: nn.Module,
         step_eval: int,
-        metrics: Optional[list[IMetric]] = None,
+        metrics: Optional[list[IMetric]] = None
     ) -> None:
         """Set optimizer, loss_func, and optionally metrics
 
@@ -130,11 +131,11 @@ class Learner:
                 if (batch_idx + 1) % self._step_eval == 0 and val_dataloader:
                     self.evaluate(val_dataloader, device, scheduler)
 
-            print(f"Training at epoch {epoch}:")
+            logger.info(f"Training at epoch {epoch}:")
             if self._metrics is not None:
                 for metric in self._metrics:
-                    print(f"\t{metric.name()} = {metric.result():.3f}")
-            print(f"\tloss = {epoch_loss / len(dataloader):.3f}")
+                    logger.info(f"\t{metric.name()} = {metric.result():.3f}")
+            logger.info(f"\tloss = {epoch_loss / len(dataloader):.3f}")
 
             if val_dataloader:
                 self.evaluate(val_dataloader, device, scheduler)
@@ -182,12 +183,12 @@ class Learner:
                     for metric in self._metrics:
                         metric.update_states(predictions, target)
                 loop.set_postfix(loss=total_loss / (batch_idx + 1))
-        print("Validation:")
+        logger.info("Validation:")
         if self._metrics is not None:
             for metric in self._metrics:
-                print(f"\t{metric.name()} = {metric.result():.3f}")
-        print(f"\tloss = {total_loss / den:.3f}")
-        print("".join(["*" * 40]))
+                logger.info(f"\t{metric.name()} = {metric.result():.3f}")
+        logger.info(f"\tloss = {total_loss / den:.3f}")
+        logger.info("".join(["*" * 40]))
         scheduler.step(total_loss / den)
 
     def predict(

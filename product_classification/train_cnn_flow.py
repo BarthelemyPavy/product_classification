@@ -80,17 +80,19 @@ class TrainCNNFlow(FlowSpec):
         init_fields = InitFields()
         self.torch_fields = init_fields.execute(one_hot_encoder=self.one_hot_encoder)
 
-        self.next(self.create_torch_datasets)
+        self.next(self.train_cnn)
 
+    # This step can't be splited because of serialization error with torchtext objects 
     @step
-    def create_torch_datasets(self) -> None:
+    def train_cnn(self) -> None:
         """Create datasets with fields and torch examples"""
-        from product_classification.data_processing.text_processing import CreateDatasets
+        from product_classification.data_processing.text_processing import CreateDatasets, BuildTextVocabulary, BuildIterators
+        from product_classification.learner.train import CreateLearner, TrainHighLevels, FinetuneAll, EvaluateClassifier
 
         self.labels = list(self.datasets.training.iloc[:, 5:].columns)
 
         create_datasets = CreateDatasets()
-        self.torch_dataset = create_datasets.execute(
+        torch_dataset = create_datasets.execute(
             processed_data=self.datasets,
             torch_fields=self.torch_fields,
             cnn_hparams=self.cnn_hyperparameters,
@@ -98,44 +100,23 @@ class TrainCNNFlow(FlowSpec):
             cat_cols=self.config.get("categorical_columns"),
             lbl_cols=self.labels,
         )
-
-        self.next(self.build_text_vocab)
-
-    @step
-    def build_text_vocab(self) -> None:
-        """Build vocabulary from text column"""
-        from product_classification.data_processing.text_processing import BuildTextVocabulary
-
+        
         build_text_vocabulary = BuildTextVocabulary()
         self.torch_fields = build_text_vocabulary.execute(
-            torch_datasets=self.torch_dataset,
+            torch_datasets=torch_dataset,
             torch_fields=self.torch_fields,
             vocab_size=self.config.get("vocab_size"),
             embedding_name=self.config.get("embedding_name"),
             vectors_cache=self.config.get("vector_cache"),
         )
-
-        self.next(self.create_torch_iterators)
-
-    @step
-    def create_torch_iterators(self) -> None:
-        """Create torch iterators"""
-        from product_classification.data_processing.text_processing import BuildIterators
-
+        
         build_iterators = BuildIterators()
-        self.torch_iterators = build_iterators.execute(
-            torch_datasets=self.torch_dataset,
+        torch_iterators = build_iterators.execute(
+            torch_datasets=torch_dataset,
             batch_size=self.config.get("batch_size"),
             device=self.config.get("device"),
         )
-
-        self.next(self.create_cnn_learner)
-
-    @step
-    def create_cnn_learner(self) -> None:
-        """Create learner to train CNN"""
-        from product_classification.learner.train import CreateLearner
-
+        
         create_learner = CreateLearner()
         self.learner = create_learner.execute(
             cnn_hparams=self.cnn_hyperparameters,
@@ -146,57 +127,39 @@ class TrainCNNFlow(FlowSpec):
             label_number=len(self.labels),
             one_hot_encoder=self.one_hot_encoder,
         )
-
-        self.next(self.train_high_levels_layers)
-
-    @step
-    def train_high_levels_layers(self) -> None:
-        """Train high levels layers (embedding layer freezed)"""
-        from product_classification.learner.train import TrainHighLevels
-
+        
         train_high_levels = TrainHighLevels()
         self.learner = train_high_levels.execute(
             cnn_learner=self.learner,
             device=self.config.get("device"),
-            torch_iterators=self.torch_iterators,
+            torch_iterators=torch_iterators,
             cnn_hparams=self.cnn_hyperparameters,
         )
-
-        self.next(self.finetune_all_layers)
-
-    @step
-    def finetune_all_layers(self) -> None:
-        """Train all layers"""
-        from product_classification.learner.train import FinetuneAll
-
+        
         finetune_all = FinetuneAll()
         self.learner = finetune_all.execute(
             cnn_learner=self.learner,
             device=self.config.get("device"),
-            torch_iterators=self.torch_iterators,
+            torch_iterators=torch_iterators,
             cnn_hparams=self.cnn_hyperparameters,
         )
-
-        self.next(self.evaluate)
-
-    @step
-    def evaluate(self) -> None:
-        """Evaluate classifier on test set"""
-        from product_classification.learner.train import EvaluateClassifier
-
+        
         evaluate_classifier = EvaluateClassifier()
         self.perfs = evaluate_classifier.execute(
             cnn_learner=self.learner,
             device=self.config.get("device"),
-            torch_iterators=self.torch_iterators,
+            torch_iterators=torch_iterators,
             multilabel_binarizer=self.multilabel_binarizer,
         )
-
+        
         self.next(self.end)
 
     @step
     def end(self) -> None:
         """"""
+        self.perfs
+        self.learner
+        self.multilabel_binarizer
         pass
 
 

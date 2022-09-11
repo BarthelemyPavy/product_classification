@@ -72,15 +72,12 @@ class CreateLearner:
 
         learner = Learner(cnn_model)
 
-        # ? During POC phase, Adam resulted to be the best optimizer,
-        # ? we hence avoid givning the client the choice of the optimizer
-        # ? this could be refactored in the future
         optimizer = partial(optim.Adam, lr=cnn_hparams.lrates.init_phase)
         criterion = nn.BCEWithLogitsLoss()  # since it's a multi-label cls
         step_eval = (
-            int(len(processed_data.training) / (batch_size * 10))
-            if int(len(processed_data.training) / (batch_size * 10)) >= 10
-            else 1
+            int(len(processed_data.training) / (batch_size * 200))
+            if int(len(processed_data.training) / (batch_size * 200)) >= 1
+            else 200
         )
 
         learner.compile(
@@ -197,6 +194,6 @@ class EvaluateClassifier:
         y_label, _ = cnn_learner.predict(torch_iterators.test, device)
         perfs = classification_report(y_gt, y_label, target_names=multilabel_binarizer.classes_, output_dict=True)
         logger.info("Test results")
-        logger.info(json.dumps(perfs, indent=4))
+        logger.info(perfs)
 
         return perfs
