@@ -51,6 +51,7 @@ class Split(ABC):
     """
 
     _val_size: float = 0.5
+    _multilabel_binarizer: MultiLabelBinarizer
 
     def __init__(self, min_categories_threshold: int, max_categories_threshold: int) -> None:
         """Class constructor
@@ -61,6 +62,10 @@ class Split(ABC):
         """
         self._min_categories_threshold = min_categories_threshold
         self._max_categories_threshold = max_categories_threshold
+
+    @property
+    def multilabel_binarizer(self) -> MultiLabelBinarizer:
+        return self._multilabel_binarizer
 
     def _filter_categories(self, dataset: pd.DataFrame, column_name: str) -> pd.DataFrame:
         """Keep only categories with nb_examples >= min_categories_threshold.
@@ -83,7 +88,7 @@ class Split(ABC):
         category_to_remove = nb_product_category[nb_product_category.product_number < self._min_categories_threshold][
             column_name
         ].tolist()
-        
+
         dataset = dataset[~dataset[column_name].isin(category_to_remove)]
         logger.info(f"Removed categories: {' ,'.join(category_to_remove)}")
         logger.info(f"Dataset shape: {dataset.shape}")
@@ -209,7 +214,7 @@ class IterativeSplit(Split):
         for fname, dataframe in datasets:
             log_attribute_per_dataset(df_data=dataframe, attribute="categories_str", logger=logger, desc=fname)
             setattr(datasets, fname, dataframe.drop(columns=["categories_str"]))
-        
+        self._multilabel_binarizer = mlb
         return datasets
 
 
@@ -268,5 +273,5 @@ class SimpleSplit(Split):
         dataset_one_hot = pd.concat([datasets.validation["id_product"], pd.DataFrame(labels)], axis=1)
         dataset_one_hot.columns = ["id_product"] + list(mlb.classes_)
         datasets.validation = datasets.validation.merge(dataset_one_hot, on="id_product").drop(columns=["categories"])
-
+        self._multilabel_binarizer = mlb
         return datasets
