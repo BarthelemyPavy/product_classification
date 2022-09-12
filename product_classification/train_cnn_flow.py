@@ -1,5 +1,6 @@
 """File where data processing Flow is defined"""
 from pathlib import Path
+import torch
 from metaflow import FlowSpec, step, Parameter
 from product_classification import logger
 
@@ -36,6 +37,7 @@ class TrainCNNFlow(FlowSpec):
             logger.info(f"{fname} shape: {df.shape}")
 
         self.multilabel_binarizer = run_test_train_split.data.multilabel_binarizer
+        self.pos_weight = torch.Tensor(run_test_train_split.data.pos_weight)
 
         self.next(self.load_config)
 
@@ -116,7 +118,7 @@ class TrainCNNFlow(FlowSpec):
             batch_size=self.config.get("batch_size"),
             device=self.config.get("device"),
         )
-        
+        self.pos_weight = self.pos_weight.to(self.config.get("device"))
         create_learner = CreateLearner()
         self.learner = create_learner.execute(
             cnn_hparams=self.cnn_hyperparameters,
@@ -126,6 +128,7 @@ class TrainCNNFlow(FlowSpec):
             batch_size=self.config.get("batch_size"),
             label_number=len(self.labels),
             one_hot_encoder=self.one_hot_encoder,
+            pos_weight=self.pos_weight
         )
         
         train_high_levels = TrainHighLevels()

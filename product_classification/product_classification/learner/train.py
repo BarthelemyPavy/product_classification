@@ -1,6 +1,5 @@
 from functools import partial
-import json
-from typing import Any
+from typing import Any, Optional
 import torch
 import numpy as np
 from torch import nn, optim
@@ -33,6 +32,7 @@ class CreateLearner:
         batch_size: int,
         label_number: int,
         one_hot_encoder: OneHotEncoder,
+        pos_weight: Optional[torch.Tensor[float]]=None
     ) -> Learner:
         """
         Execute node
@@ -73,7 +73,7 @@ class CreateLearner:
         learner = Learner(cnn_model)
 
         optimizer = partial(optim.Adam, lr=cnn_hparams.lrates.init_phase)
-        criterion = nn.BCEWithLogitsLoss()  # since it's a multi-label cls
+        criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)  # since it's a multi-label cls
         step_eval = (
             int(len(processed_data.training) / (batch_size * 200))
             if int(len(processed_data.training) / (batch_size * 200)) >= 1

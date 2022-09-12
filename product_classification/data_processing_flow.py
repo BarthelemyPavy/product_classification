@@ -75,6 +75,7 @@ class DataProcessingFlow(FlowSpec):
         for fname, dataframe in self.datasets:
             setattr(self.datasets, fname, dataframe.drop(columns=["product_description"]))
         self.multilabel_binarizer = simple_split.multilabel_binarizer
+        self.pos_weight = simple_split.pos_weight
         self.next(self.end)
 
     @step
@@ -82,6 +83,7 @@ class DataProcessingFlow(FlowSpec):
         """"""
         self.multilabel_binarizer
         self.dataset
+        self.pos_weight
         pass
 
 
