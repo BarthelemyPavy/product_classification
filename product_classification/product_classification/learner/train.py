@@ -16,6 +16,22 @@ from product_classification import logger
 from product_classification.learner.learner import Learner
 
 
+class FocalLoss(nn.Module):
+    
+    def __init__(self, pos_weight: torch.Tensor, gamma: float=2.0) -> None:
+        super(FocalLoss, self).__init__()
+        self.pos_weight = pos_weight
+        self.gamma = gamma
+        self.loss = nn.BCEWithLogitsLoss(pos_weight=pos_weight, reduction="none")
+        
+    def forward(self, logits, targets) -> torch.Tensor:
+
+        bce_loss = self.loss(logits, targets)
+        pt = torch.exp(-bce_loss)
+        loss = bce_loss * ((1 - pt) ** self.gamma)
+        return loss.mean()
+
+
 class CreateLearner:
     """
     Create CNN learner that is defined by a model architecture, a loss function
@@ -32,7 +48,7 @@ class CreateLearner:
         batch_size: int,
         label_number: int,
         one_hot_encoder: OneHotEncoder,
-        pos_weight: Optional[torch.Tensor]=None
+        pos_weight: torch.Tensor
     ) -> Learner:
         """
         Execute node
@@ -73,7 +89,8 @@ class CreateLearner:
         learner = Learner(cnn_model)
 
         optimizer = partial(optim.Adam, lr=cnn_hparams.lrates.init_phase)
-        criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)  # since it's a multi-label cls
+        criterion = FocalLoss(pos_weight=pos_weight)
+        #nn.BCEWithLogitsLoss(pos_weight=pos_weight)  # since it's a multi-label cls
         step_eval = int(20*int(len(processed_data.training) / batch_size) / 100)
 
         learner.compile(
@@ -132,7 +149,7 @@ class FinetuneAll:
         cnn_hparams: CnnHyperParameters,
         processed_data: Dataset,
         batch_size: int,
-        pos_weight: Optional[torch.Tensor]=None
+        pos_weight: torch.Tensor
     ) -> Learner:
         """
         Execute node
@@ -150,7 +167,8 @@ class FinetuneAll:
         cnn_learner.unfreeze()
         
         optimizer = partial(optim.Adam, lr=cnn_hparams.lrates.finetuning_phase)
-        criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)  # since it's a multi-label cls
+        criterion = FocalLoss(pos_weight=pos_weight)
+        #nn.BCEWithLogitsLoss(pos_weight=pos_weight)  # since it's a multi-label cls
         step_eval = int(20*int(len(processed_data.training) / batch_size) / 100)
 
         cnn_learner.compile(
