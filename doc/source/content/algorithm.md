@@ -6,6 +6,8 @@ Take a look to **[this notebook](../../../notebooks/EDA.ipynb)** to deep dive in
 
 ## Divide and Rule
 
+[Notebook](../../../product_classification/split_dataset.ipynb)
+
 About train, test and validation step, we have two choices:
 
 - Stratify split based on each category (as single label classification)
