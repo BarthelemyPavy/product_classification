@@ -32,7 +32,7 @@ class CreateLearner:
         batch_size: int,
         label_number: int,
         one_hot_encoder: OneHotEncoder,
-        pos_weight: Optional[torch.Tensor[float]]=None
+        pos_weight: Optional[torch.Tensor]=None
     ) -> Learner:
         """
         Execute node
@@ -74,11 +74,7 @@ class CreateLearner:
 
         optimizer = partial(optim.Adam, lr=cnn_hparams.lrates.init_phase)
         criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)  # since it's a multi-label cls
-        step_eval = (
-            int(len(processed_data.training) / (batch_size * 200))
-            if int(len(processed_data.training) / (batch_size * 200)) >= 1
-            else 200
-        )
+        step_eval = int(20*int(len(processed_data.training) / batch_size) / 100)
 
         learner.compile(
             optimizer=optimizer, loss_func=criterion, step_eval=step_eval, metrics=[HammingLoss(), FScore()]

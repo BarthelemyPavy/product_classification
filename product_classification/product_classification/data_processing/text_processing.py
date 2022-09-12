@@ -157,7 +157,7 @@ class InitFields:
             TorchFields: torch fields used to represent text samples and labels
         """
         one_hot_encoding = partial(self._one_hot_encoding, one_hot_encoder=one_hot_encoder)
-        categorical_field = data.Field(preprocessing=one_hot_encoding, use_vocab=False)
+        categorical_field = data.Field(postprocessing=one_hot_encoding, use_vocab=False)
         logger.info("Categorical field created")
         text_field = data.Field(
             tokenize="spacy", batch_first=True, preprocessing=self._lowercase, tokenizer_language="en_core_web_sm"
@@ -168,9 +168,9 @@ class InitFields:
         return TorchFields(text=text_field, label=label_field, categorical=categorical_field)
 
     @staticmethod
-    def _one_hot_encoding(category: list[str], one_hot_encoder: OneHotEncoder) -> list[list[float]]:
+    def _one_hot_encoding(category: list[str], vocab: Any, one_hot_encoder: OneHotEncoder) -> list[list[float]]: # type: ignore
         """"""
-        return np.concatenate(one_hot_encoder.transform([category]).toarray())  # type: ignore
+        return one_hot_encoder.transform(category).toarray()  # type: ignore
 
     @staticmethod
     def _lowercase(tags: list[str]) -> list[str]:

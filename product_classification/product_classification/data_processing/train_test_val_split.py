@@ -52,7 +52,7 @@ class Split(ABC):
 
     _val_size: float = 0.5
     _multilabel_binarizer: MultiLabelBinarizer
-    _pos_weight: list[float]
+    _pos_weight: list[int]
 
     def __init__(self, min_categories_threshold: int, max_categories_threshold: int) -> None:
         """Class constructor
@@ -226,7 +226,7 @@ class SimpleSplit(Split):
     def pos_weight(self) -> list[float]:
         return self._pos_weight
     
-    def _get_pos_weight_loss(self, training_df: pd.DataFrame) -> list[float]:
+    def _get_pos_weight_loss(self, training_df: pd.DataFrame) -> list[int]:
         """[summary]
 
         Args:
@@ -236,9 +236,10 @@ class SimpleSplit(Split):
             list[float]: [description]
         """
         label_count = training_df.groupby("category").id_product.count().reset_index().rename(columns={"id_product": "label_count"})
+        label_count = label_count[label_count.label_count != 0]
         label_count["total_label_count"] = training_df.id_product.count()
         label_count["others_label_count"] = label_count["total_label_count"] - label_count["label_count"]
-        label_count["label_weight"] = label_count["others_label_count"] / label_count["label_count"]
+        label_count["label_weight"] = (label_count["others_label_count"] / label_count["label_count"]).astype(int)
         return label_count.label_weight.tolist()
 
     def _test_val_split(
