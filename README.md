@@ -89,26 +89,11 @@ or
 ```bash
 ./post_install.sh
 ```
-___
-
-## Execution
-
-For information about job executions, please check [this page](./doc/source/content/execution.md)
-
-___
-
 ## Algorithm
 
 For information about implemented algorithm, please check [this page](./doc/source/content/algorithm.md)
 
 ___
-
-## Package Architecture
-
-For information the architecture of the solution, please check [this page](./doc/source/content/flows.md)
-
-___
-
 
 ## Next Steps
 
