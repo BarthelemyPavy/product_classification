@@ -175,7 +175,7 @@ class InitFields:
     @staticmethod
     def _lowercase(tags: list[str]) -> list[str]:
         """Tags are converted to lowercase during preprocessing"""
-        return [tag.lower() for tag in tags]
+        return [Lemmatizer.remove_url_and_number(tag.lower()) for tag in tags]
 
 
 class CreateDatasets:

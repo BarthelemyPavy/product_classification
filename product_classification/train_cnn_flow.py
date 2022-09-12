@@ -145,6 +145,9 @@ class TrainCNNFlow(FlowSpec):
             device=self.config.get("device"),
             torch_iterators=torch_iterators,
             cnn_hparams=self.cnn_hyperparameters,
+            processed_data=self.dataset,
+            batch_size=self.config.get("batch_size"),
+            pos_weight=self.pos_weight
         )
         
         evaluate_classifier = EvaluateClassifier()

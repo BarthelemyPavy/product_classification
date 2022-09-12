@@ -130,6 +130,9 @@ class FinetuneAll:
         device: torch.device,
         torch_iterators: TorchIterators,
         cnn_hparams: CnnHyperParameters,
+        processed_data: Dataset,
+        batch_size: int,
+        pos_weight: Optional[torch.Tensor]=None
     ) -> Learner:
         """
         Execute node
@@ -145,10 +148,17 @@ class FinetuneAll:
 
         logger.info("Unfreezing the whole CNN network")
         cnn_learner.unfreeze()
+        
+        optimizer = partial(optim.Adam, lr=cnn_hparams.lrates.finetuning_phase)
+        criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)  # since it's a multi-label cls
+        step_eval = int(20*int(len(processed_data.training) / batch_size) / 100)
 
+        cnn_learner.compile(
+            optimizer=optimizer, loss_func=criterion, step_eval=step_eval, metrics=[HammingLoss(), FScore()]
+        )
         logger.info("Starting finetuning of the whole CNN network")
         cnn_learner.fit(
-            nb_epochs=cnn_hparams.epochs.init_phase,
+            nb_epochs=cnn_hparams.epochs.finetuning_phase,
             device=device,
             dataloader=torch_iterators.training,
             val_dataloader=torch_iterators.validation,

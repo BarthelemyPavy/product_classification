@@ -166,9 +166,7 @@ class Learner:
 
         den = len(dataloader)
         with torch.no_grad():
-            loop = tqdm(enumerate(dataloader), total=len(dataloader))
-            loop.set_description("Validation")
-            for batch_idx, batch in loop:
+            for batch in dataloader:
                 in_text, category_ohe, target = batch.text.to(device), batch.category.to(device), batch.label.to(device)
 
                 try:
@@ -182,7 +180,6 @@ class Learner:
                 if self._metrics is not None:
                     for metric in self._metrics:
                         metric.update_states(predictions, target)
-                loop.set_postfix(loss=total_loss / (batch_idx + 1))
         logger.info("Validation:")
         if self._metrics is not None:
             for metric in self._metrics:
