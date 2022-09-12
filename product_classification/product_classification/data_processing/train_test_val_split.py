@@ -226,7 +226,7 @@ class SimpleSplit(Split):
     def pos_weight(self) -> list[float]:
         return self._pos_weight
     
-    def _get_pos_weight_loss(training_df: pd.DataFrame) -> list[float]:
+    def _get_pos_weight_loss(self, training_df: pd.DataFrame) -> list[float]:
         """[summary]
 
         Args:
@@ -272,7 +272,7 @@ class SimpleSplit(Split):
             test=dataset[dataset.id_product.isin(test_ids)],
             validation=dataset[dataset.id_product.isin(validation_ids)],
         )
-        self._pos_weight = self._get_pos_weight_loss(trainin_df=datasets.training)
+        self._pos_weight = self._get_pos_weight_loss(training_df=datasets.training)
 
         for fname, dataframe in datasets:
             log_attribute_per_dataset(df_data=dataframe, attribute="category", logger=logger, desc=fname)
