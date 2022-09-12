@@ -48,7 +48,8 @@ class CreateLearner:
         batch_size: int,
         label_number: int,
         one_hot_encoder: OneHotEncoder,
-        pos_weight: torch.Tensor
+        pos_weight: torch.Tensor,
+        gamma: float = 1.0
     ) -> Learner:
         """
         Execute node
@@ -89,7 +90,7 @@ class CreateLearner:
         learner = Learner(cnn_model)
 
         optimizer = partial(optim.Adam, lr=cnn_hparams.lrates.init_phase)
-        criterion = FocalLoss(pos_weight=pos_weight)
+        criterion = FocalLoss(pos_weight=pos_weight, gamma=gamma)
         #nn.BCEWithLogitsLoss(pos_weight=pos_weight)  # since it's a multi-label cls
         step_eval = int(20*int(len(processed_data.training) / batch_size) / 100)
 
@@ -149,7 +150,8 @@ class FinetuneAll:
         cnn_hparams: CnnHyperParameters,
         processed_data: Dataset,
         batch_size: int,
-        pos_weight: torch.Tensor
+        pos_weight: torch.Tensor,
+        gamma: float = 1.0
     ) -> Learner:
         """
         Execute node
@@ -167,7 +169,7 @@ class FinetuneAll:
         cnn_learner.unfreeze()
         
         optimizer = partial(optim.Adam, lr=cnn_hparams.lrates.finetuning_phase)
-        criterion = FocalLoss(pos_weight=pos_weight)
+        criterion = FocalLoss(pos_weight=pos_weight, gamma=gamma)
         #nn.BCEWithLogitsLoss(pos_weight=pos_weight)  # since it's a multi-label cls
         step_eval = int(20*int(len(processed_data.training) / batch_size) / 100)
 
